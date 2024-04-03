@@ -107,20 +107,67 @@ find_answers_to_question(QuestionIndex, Answers) :-
     question(QuestionIndex, QuestionText),
     findall(AnswerText, answer(QuestionIndex, _, AnswerText, _, _), Answers).
 
-show_answers_to_question(QuestionIndex) :- 
+
+% prolog cannot change the value 
+score_pair(i,0).
+score_pair(e,0).
+score_pair(s,0).
+score_pair(n,0).
+score_pair(t,0).
+score_pair(f,0).
+score_pair(j,0).
+score_pair(p,0).
+   
+score_pair_list([score_pair(i,0), score_pair(e,0), score_pair(s,0), score_pair(n,0), score_pair(t,0), score_pair(f,0), score_pair(j,0), score_pair(p,0)]).
+
+show_score_pair_list([]).
+show_score_pair_list([score_pair(M, V)|Rest]) :- 
+    write(M), write(': '), write(V), nl,
+    show_score_pair_list(Rest).
+
+show_score_pair_list(M,V) :- 
+    score_pair_list(L),
+    update_score_in_list(M, V, L, L1),
+    show_score_pair_list(L1).
+
+update_score_in_list(_, _, [], []).
+update_score_in_list(M , V, [score_pair(M, Old)|Rest], [score_pair(M, New)|Rest]) :- 
+    is(New, Old + V).
+update_score_in_list(K , V, [score_pair(M, Old)|Rest], NewList) :- 
+    dif(K, M),
+    update_score_in_list(K, V, Rest, NewList).
+
+increment_score(M, Inc, score_pair(M, Old), score_pair(M, New)) :- 
+    score_pair(M, Old),
+    is(New, Old + Inc).
+
+ask :-
+    score_pair_list(L),
+    show_answers_to_question(1, L).
+
+show_answers_to_question(_, []).
+show_answers_to_question(QuestionIndex, ScoreList) :- 
     question(QuestionIndex, QuestionText),
     write(QuestionText), nl,
     findall(AnswerText, answer(QuestionIndex, _, AnswerText, _, _), AnswerTexts),
     findall(AnswerOption, answer(QuestionIndex, AnswerOption, _, _, _), AnswerOptions),
-    show_answers(AnswerTexts, AnswerOptions).
+    show_answers(AnswerTexts, AnswerOptions),
+    read_line_to_string(user_input, UserAnswer),
+    atom_string(M, UserAnswer),
+    processAnswer(QuestionIndex, M, ScoreList).
+
+processAnswer(QuestionIndex, UserAnswer, ScoreList) :- 
+    answer(QuestionIndex, UserAnswer, _, M, V),
+    update_score_in_list(M, V, ScoreList, NewScore),
+    show_score_pair_list(NewScore).
 
 show_answers([], []).
 show_answers([AnswerText|RestTexts],[AnswerOption|RestOptions]) :- 
     write(AnswerOption), write(') '),
     write(AnswerText), nl,
-    show_answers(RestTexts, RestOptions),
-    read_line_to_string(user_input, St),
-    write(St), nl.
+    show_answers(RestTexts, RestOptions).
+
+
 
 % Personalities = ['Introversion', 'Sensing', 'Thinking', 'Judging']
 %e.g find_personality_name(['Introversion', 'Sensing', 'Thinking', 'Judging'], PersonalityName).
