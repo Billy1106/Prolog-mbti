@@ -117,23 +117,24 @@ score_pair(t,0).
 score_pair(f,0).
 score_pair(j,0).
 score_pair(p,0).
-   
+
 score_pair_list([score_pair(i,0), score_pair(e,0), score_pair(s,0), score_pair(n,0), score_pair(t,0), score_pair(f,0), score_pair(j,0), score_pair(p,0)]).
 
+get_score(M, V, L) :- 
+    member(score_pair(M, V), L).
+
 show_score_pair_list([]).
-show_score_pair_list([score_pair(M, V)|Rest]) :- 
+show_score_pair_list([score_pair(M, V)|Rest]) :-
     write(M), write(': '), write(V), nl,
     show_score_pair_list(Rest).
 
-show_score_pair_list(M,V) :- 
-    score_pair_list(L),
-    update_score_in_list(M, V, L, L1),
-    show_score_pair_list(L1).
-
 update_score_in_list(_, _, [], []).
+
 update_score_in_list(M , V, [score_pair(M, Old)|Rest], [score_pair(M, New)|Rest]) :- 
-    is(New, Old + V).
-update_score_in_list(K , V, [score_pair(M, Old)|Rest], NewList) :- 
+    is(New, Old + V),
+    update_score_in_list(M, V, Rest, Rest).
+
+update_score_in_list(K , V, [score_pair(M, Old)|Rest], [score_pair(M, Old)|NewList]) :-
     dif(K, M),
     update_score_in_list(K, V, Rest, NewList).
 
@@ -141,12 +142,32 @@ increment_score(M, Inc, score_pair(M, Old), score_pair(M, New)) :-
     score_pair(M, Old),
     is(New, Old + Inc).
 
+test :-
+    score_pair_list(L),
+    update_score_in_list(i, 1, L, L1),
+    show_score_pair_list(L1),
+    write('---'), nl,
+    update_score_in_list(e, 1, L1, L2),
+    show_score_pair_list(L2).
+
 ask :-
     score_pair_list(L),
-    show_answers_to_question(1, L).
+    ask_questions(1, L).
 
-show_answers_to_question(_, []).
-show_answers_to_question(QuestionIndex, ScoreList) :- 
+ask_questions(3, FinalScore) :- 
+    write('Done '), nl,
+    show_score_pair_list(FinalScore).
+
+ask_questions(QuestionIndex, PreviousScore) :- 
+    QuestionIndex < 3, % need extra this line to stop the recursion, and make another ask_questions execute
+    write('Current Question: '), write(QuestionIndex), nl,
+    show_answers_to_question(QuestionIndex, PreviousScore, NewScore),
+    is(NextQuestion, QuestionIndex + 1),
+    ask_questions(NextQuestion, NewScore).
+
+show_answers_to_question(_, [], []).
+show_answers_to_question(QuestionIndex, ScoreList, NewScore) :- 
+    write(QuestionIndex), nl,
     question(QuestionIndex, QuestionText),
     write(QuestionText), nl,
     findall(AnswerText, answer(QuestionIndex, _, AnswerText, _, _), AnswerTexts),
@@ -154,20 +175,17 @@ show_answers_to_question(QuestionIndex, ScoreList) :-
     show_answers(AnswerTexts, AnswerOptions),
     read_line_to_string(user_input, UserAnswer),
     atom_string(M, UserAnswer),
-    processAnswer(QuestionIndex, M, ScoreList).
+    processAnswer(QuestionIndex, M, ScoreList, NewScore).
 
-processAnswer(QuestionIndex, UserAnswer, ScoreList) :- 
+processAnswer(QuestionIndex, UserAnswer, ScoreList, NewScore) :- 
     answer(QuestionIndex, UserAnswer, _, M, V),
-    update_score_in_list(M, V, ScoreList, NewScore),
-    show_score_pair_list(NewScore).
+    update_score_in_list(M, V, ScoreList, NewScore).
 
 show_answers([], []).
 show_answers([AnswerText|RestTexts],[AnswerOption|RestOptions]) :- 
     write(AnswerOption), write(') '),
     write(AnswerText), nl,
     show_answers(RestTexts, RestOptions).
-
-
 
 % Personalities = ['Introversion', 'Sensing', 'Thinking', 'Judging']
 %e.g find_personality_name(['Introversion', 'Sensing', 'Thinking', 'Judging'], PersonalityName).
