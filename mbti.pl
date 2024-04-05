@@ -67,16 +67,26 @@ keyword('explore', n).
 keyword('predictable', j).
 keyword('surprises', p).
 
+
+% Define questions related to the Extraversion (E) vs. Introversion (I) scale
 question(1, 'Do you feel more energized by spending time alone or by socializing in a big group?').
 question(2, 'After a long day, do you prefer to unwind alone or with others?').
-question(3, 'When attending events, are you more likely to stay on the sidelines or engage actively with many people?').
-question(4, 'When making decisions, do you rely more on concrete facts or your gut feelings?').
-question(5, 'Do you prefer to focus on details and specifics or the big picture and future possibilities?').
-question(6, 'In conversations, are you more interested in real-world happenings or abstract ideas and concepts?').
-question(7, 'When faced with a decision, do you prioritize logic and objective criteria or people’s feelings and harmony?').
-question(8, 'In disagreements, are you more likely to stick to your principles or seek to maintain the relationship at all costs?').
-question(9, 'Do you find it easier to critique or compliment?').
-question(10, 'Do you prefer to have plans and schedules or go with the flow?').
+
+% Define questions related to the Sensing (S) vs. Intuition (N) scale
+question(3, 'Do you prefer to focus on the details of the present or think about the possibilities of the future?').
+question(4, 'When learning new information, do you prefer concrete facts or big ideas?').
+
+% Define questions related to the Thinking (T) vs. Feeling (F) scale
+question(5, 'When making decisions, do you prioritize logic and consistency or people and emotions?').
+question(6, 'Is it more important for you to be right or to be compassionate?').
+
+
+% Define questions related to the Judging (J) vs. Perceiving (P) scale
+question(7, 'Do you prefer to have things planned and decided or to stay open to new information and options?').
+question(8, 'When it comes to work and schedules, do you prefer following a plan or being spontaneous?').
+
+
+
 
 answer(1, a, 'Feel energized and look for people to talk to', e, 2).
 answer(1, b, 'Enjoy talking with people you know well', e, 1).
@@ -90,17 +100,41 @@ answer(2, c, 'Feel energized and look for people to talk to', e, 2).
 answer(2, d, 'Enjoy talking with people you know well', e, 1).
 answer(2, e, 'Feel a bit overwhelmed and stick to close friends', i, 1).
 
-answer(3, a, 'Feel energized and look for people to talk to', e, 2).
-answer(3, b, 'Enjoy talking with people you know well', e, 1).
-answer(3, c, 'Feel a bit overwhelmed and stick to close friends', i, 1).
-answer(3, d, 'Prefer to observe and listen rather than talking', i, 2).
-answer(3, e, 'Find an excuse to leave early', i, 3).
+answer(3, a, 'Focus on the details of the present', s, 1).
+answer(3, b, 'Think about the possibilities of the future', n, 1).
+answer(3, c, 'Prefer concrete facts', s, 1).
+answer(3, d, 'Prefer big ideas', n, 1).
+answer(3, e, 'Enjoy exploring new possibilities', n, 1).
 
-answer(4, a, 'Enjoy spending time with friends and family', e, 1).
-answer(4, b, 'Prefer to be alone or with one or two close friends', i, 1).
-answer(4, c, 'Feel energized and look for people to talk to', e, 2).
-answer(4, d, 'Enjoy talking with people you know well', e, 1).
-answer(4, e, 'Feel a bit overwhelmed and stick to close friends', i, 1).
+answer(4, a, 'Focus on the details of the present', s, 1).
+answer(4, b, 'Think about the possibilities of the future', n, 1).
+answer(4, c, 'Prefer concrete facts', s, 1).
+answer(4, d, 'Prefer big ideas', n, 1).
+answer(4, e, 'Enjoy exploring new possibilities', n, 1).
+
+answer(5, a, 'Prioritize logic and consistency', t, 1).
+answer(5, b, 'Prioritize people and emotions', f, 1).
+answer(5, c, 'Prefer to be right', t, 1).
+answer(5, d, 'Prefer to be compassionate', f, 1).
+answer(5, e, 'Enjoy giving compliments', f, 1).
+
+answer(6, a, 'Prioritize logic and consistency', t, 1).
+answer(6, b, 'Prioritize people and emotions', f, 1).
+answer(6, c, 'Prefer to be right', t, 1).
+answer(6, d, 'Prefer to be compassionate', f, 1).
+answer(6, e, 'Enjoy giving compliments', f, 1).
+
+answer(7, a, 'Prefer to have things planned and decided', j, 1).
+answer(7, b, 'Stay open to new information and options', p, 1).
+answer(7, c, 'Enjoy following a plan', j, 1).
+answer(7, d, 'Prefer being spontaneous', p, 1).
+answer(7, e, 'Enjoy surprises and new experiences', p, 1).
+
+answer(8, a, 'Prefer to have things planned and decided', j, 1).
+answer(8, b, 'Stay open to new information and options', p, 1).
+answer(8, c, 'Enjoy following a plan', j, 1).
+answer(8, d, 'Prefer being spontaneous', p, 1).
+answer(8, e, 'Enjoy surprises and new experiences', p, 1).
 
 
 find_answers_to_question(QuestionIndex, Answers) :- 
@@ -138,28 +172,41 @@ update_score_in_list(K , V, [score_pair(M, Old)|Rest], [score_pair(M, Old)|NewLi
     dif(K, M),
     update_score_in_list(K, V, Rest, NewList).
 
-increment_score(M, Inc, score_pair(M, Old), score_pair(M, New)) :- 
-    score_pair(M, Old),
-    is(New, Old + Inc).
-
 test :-
     score_pair_list(L),
-    update_score_in_list(i, 1, L, L1),
+    update_score_in_list(e, 2, L, L1),
     show_score_pair_list(L1),
     write('---'), nl,
-    update_score_in_list(e, 1, L1, L2),
+    update_score_in_list(i, 1, L1, L2),
     show_score_pair_list(L2).
+
+isGreater(score_pair(X, V1), score_pair(_, V2), X) :- 
+    V1 >= V2.
+
+isGreater(score_pair(_, V1), score_pair(Y, V2), Y) :- 
+    V1 < V2.
+
+find_personality([score_pair(i, Vi), score_pair(e, Ve), score_pair(s, Vs), score_pair(n, Vn), score_pair(t, Vt), score_pair(f, Vf), score_pair(j, Vj), score_pair(p, Vp)], Personality) :- 
+    isGreater(score_pair(i, Vi), score_pair(e, Ve), IE),
+    isGreater(score_pair(s, Vs), score_pair(n, Vn), SN),
+    isGreater(score_pair(t, Vt), score_pair(f, Vf), TF),
+    isGreater(score_pair(j, Vj), score_pair(p, Vp), JP),
+    mbti_personality(Personality, [IE, SN, TF, JP]).
 
 ask :-
     score_pair_list(L),
     ask_questions(1, L).
 
-ask_questions(3, FinalScore) :- 
+ask_questions(9, FinalScore) :- 
     write('Done '), nl,
-    show_score_pair_list(FinalScore).
+    show_score_pair_list(FinalScore),
+    find_personality(FinalScore, Personality),
+    write('Personality: '), write(Personality), nl,
+    find_personality_name(Personality, PersonalityName),
+    write('Personality Name: '), write(PersonalityName), nl.
 
 ask_questions(QuestionIndex, PreviousScore) :- 
-    QuestionIndex < 3, % need extra this line to stop the recursion, and make another ask_questions execute
+    QuestionIndex < 9, % need extra this line to stop the recursion, and make another ask_questions execute
     write('Current Question: '), write(QuestionIndex), nl,
     show_answers_to_question(QuestionIndex, PreviousScore, NewScore),
     is(NextQuestion, QuestionIndex + 1),
@@ -179,7 +226,14 @@ show_answers_to_question(QuestionIndex, ScoreList, NewScore) :-
 
 processAnswer(QuestionIndex, UserAnswer, ScoreList, NewScore) :- 
     answer(QuestionIndex, UserAnswer, _, M, V),
+    write('M: '), write(M), write(' V: '), write(V), nl,
     update_score_in_list(M, V, ScoreList, NewScore).
+
+processAnswer(QuestionIndex, InvalidAnswer, ScoreList, NewScore) :- 
+    answer(QuestionIndex, UserAnswer, _, _, _),
+    write('Invalid Answer: '), write(InvalidAnswer), nl,
+    write('Please enter a valid answer: '), nl,
+    show_answers_to_question(QuestionIndex, ScoreList, NewScore).
 
 show_answers([], []).
 show_answers([AnswerText|RestTexts],[AnswerOption|RestOptions]) :- 
