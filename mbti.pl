@@ -86,6 +86,11 @@ question(7, 'Do you prefer to have things planned and decided or to stay open to
 question(8, 'When it comes to work and schedules, do you prefer following a plan or being spontaneous?').
 
 
+valid_answer(a).
+valid_answer(b).
+valid_answer(c).
+valid_answer(d).
+valid_answer(e).
 
 
 answer(1, a, 'Feel energized and look for people to talk to', e, 2).
@@ -197,7 +202,7 @@ ask :-
     score_pair_list(L),
     ask_questions(1, L).
 
-ask_questions(9, FinalScore) :- 
+ask_questions(8, FinalScore) :- 
     write('Done '), nl,
     show_score_pair_list(FinalScore),
     find_personality(FinalScore, Personality),
@@ -206,7 +211,7 @@ ask_questions(9, FinalScore) :-
     write('Personality Name: '), write(PersonalityName), nl.
 
 ask_questions(QuestionIndex, PreviousScore) :- 
-    QuestionIndex < 9, % need extra this line to stop the recursion, and make another ask_questions execute
+    QuestionIndex < 8, % need extra this line to stop the recursion, and make another ask_questions execute
     write('Current Question: '), write(QuestionIndex), nl,
     show_answers_to_question(QuestionIndex, PreviousScore, NewScore),
     is(NextQuestion, QuestionIndex + 1),
@@ -220,20 +225,27 @@ show_answers_to_question(QuestionIndex, ScoreList, NewScore) :-
     findall(AnswerText, answer(QuestionIndex, _, AnswerText, _, _), AnswerTexts),
     findall(AnswerOption, answer(QuestionIndex, AnswerOption, _, _, _), AnswerOptions),
     show_answers(AnswerTexts, AnswerOptions),
+    get_user_answer(QuestionIndex, ScoreList, NewScore).
+
+get_user_answer(QuestionIndex, ScoreList, NewScore) :-
     read_line_to_string(user_input, UserAnswer),
-    atom_string(M, UserAnswer),
-    processAnswer(QuestionIndex, M, ScoreList, NewScore).
+    atom_string(AnswerAtom, UserAnswer),
+    (   valid_answer(AnswerAtom)
+    ->  processAnswer(QuestionIndex, AnswerAtom, ScoreList, NewScore)
+    ;   write('Invalid Answer. Please enter a valid option from a to e: '), nl,
+        get_user_answer(QuestionIndex, ScoreList, NewScore)
+    ).
+
 
 processAnswer(QuestionIndex, UserAnswer, ScoreList, NewScore) :- 
-    answer(QuestionIndex, UserAnswer, _, M, V),
+    answer(QuestionIndex, UserAnswer, _, M, V), !,
     write('M: '), write(M), write(' V: '), write(V), nl,
     update_score_in_list(M, V, ScoreList, NewScore).
 
-processAnswer(QuestionIndex, InvalidAnswer, ScoreList, NewScore) :- 
-    answer(QuestionIndex, UserAnswer, _, _, _),
-    write('Invalid Answer: '), write(InvalidAnswer), nl,
-    write('Please enter a valid answer: '), nl,
-    show_answers_to_question(QuestionIndex, ScoreList, NewScore).
+processAnswer(QuestionIndex, _, ScoreList, NewScore) :- 
+    write('Error processing answer. Please try again: '), nl,
+    get_user_answer(QuestionIndex, ScoreList, NewScore).
+
 
 show_answers([], []).
 show_answers([AnswerText|RestTexts],[AnswerOption|RestOptions]) :- 
